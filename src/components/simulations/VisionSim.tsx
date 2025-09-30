@@ -10,7 +10,7 @@ interface VisionSimProps {
     children: React.ReactNode;
 }
 
-export const Visionsim: React.FC<VisionSimProps> = ({ simulationType, children }) => {
+export const VisionSim: React.FC<VisionSimProps> = ({ simulationType, children }) => {
   const getFilterStyle = (): React.CSSProperties => {
     switch (simulationType) {
       case "protanopia":
