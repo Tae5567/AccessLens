@@ -9,6 +9,7 @@ import { VisionSim, VisionSimulationType } from "../simulations/VisionSim";
 import { MotorSim, MotorSimulationType } from "../simulations/MotorSim";
 import { ScoreCard } from "./ScoreCard";
 import { RemediationPanel } from "./RemediationPanel";
+import { AccessibilityHeatmap } from "./AccessibilityHeatmap";
 
 interface SimulationOverlayProps {
     storyContent: string;
@@ -16,7 +17,7 @@ interface SimulationOverlayProps {
     onClose: () => void;
 }
 
-type SimulationMode = "none" | "screen-reader" | VisionSimulationType | MotorSimulationType;
+type SimulationMode = "none" | "screen-reader" | "heatmap" | VisionSimulationType | MotorSimulationType;
 
 export const SimulationOverlay: React.FC<SimulationOverlayProps> = ({
     storyContent,
@@ -30,6 +31,7 @@ export const SimulationOverlay: React.FC<SimulationOverlayProps> = ({
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const analysisTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const lastAnalyzedContentRef = useRef<string>("");
+    const contentRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (lastAnalyzedContentRef.current === storyContent) {
@@ -105,6 +107,7 @@ export const SimulationOverlay: React.FC<SimulationOverlayProps> = ({
 
     const simulationOptions = [
         {value: "none", label: "No Simulation", category: "None"},
+        { value: "heatmap", label: "🔥 Accessibility Heatmap", category: "Analysis" },
         { value: "screen-reader", label: "Screen Reader", category: "Assistive Tech" },
         { value: "protanopia", label: "Protanopia (Red-Blind)", category: "Color Blindness" },
         { value: "deuteranopia", label: "Deuteranopia (Green-Blind)", category: "Color Blindness" },
@@ -128,10 +131,38 @@ export const SimulationOverlay: React.FC<SimulationOverlayProps> = ({
     const isVisionSim = ["protanopia", "deuteranopia", "tritanopia", "achromatopsia", "low-vision", "blur", "cataracts"].includes(activeSimulation);
     const isMotorSim = ["tremor", "limited-mobility"].includes(activeSimulation);
     const isScreenReader = activeSimulation === "screen-reader";
+    const isHeatmap = activeSimulation === "heatmap";
 
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-80 z-[9999] flex">
+        {/* Accessibility Score Progress Bar */}
+        {score && (
+          <div
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: "4px",
+              background: "#e5e7eb",
+              zIndex: 10002,
+            }}
+          >
+            <div
+              style={{
+                height: "100%",
+                width: `${score.overall}%`,
+                background: score.overall >= 90 
+                  ? "linear-gradient(90deg, #10b981, #059669)" 
+                  : score.overall >= 70 
+                  ? "linear-gradient(90deg, #f59e0b, #d97706)"
+                  : "linear-gradient(90deg, #ef4444, #dc2626)",
+                transition: "width 1s cubic-bezier(0.4, 0, 0.2, 1)",
+              }}
+            />
+          </div>
+        )}
         {/* Left Control Panel */}
         <div className="w-96 bg-white overflow-y-auto shadow-2xl">
           <div className="p-6">
@@ -212,7 +243,11 @@ export const SimulationOverlay: React.FC<SimulationOverlayProps> = ({
 
         {/* Right Content Area */}
         <div className="flex-1 bg-white relative overflow-hidden">
-          <div className="w-full h-full overflow-auto p-8 pb-32">
+          <div 
+            ref={contentRef}
+            className="w-full h-full overflow-auto p-8 pb-32"
+            style={{ position: "relative" }}
+          >
             {isVisionSim ? (
               <VisionSim simulationType={activeSimulation as VisionSimulationType}>
                 <div dangerouslySetInnerHTML={{ __html: storyContent }} />
@@ -223,6 +258,15 @@ export const SimulationOverlay: React.FC<SimulationOverlayProps> = ({
               </MotorSim>
             ) : (
               <div dangerouslySetInnerHTML={{ __html: storyContent }} />
+            )}
+
+            {/* Heatmap Overlay */}
+            {isHeatmap && (
+              <AccessibilityHeatmap
+                issues={issues}
+                isActive={isHeatmap}
+                contentRef={contentRef.current}
+              />
             )}
           </div>
         </div>

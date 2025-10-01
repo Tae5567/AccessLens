@@ -32,9 +32,13 @@ function PreviewContent() {
       const data = await response.json();
       const story = data.story;
 
-      console.log('Fetched story:', story); // Debug log
+      console.log('=== FETCHED STORY ===');
+      console.log('Full story:', JSON.stringify(story, null, 2));
+      console.log('Story ID:', story.id);
+      console.log('Story name:', story.name);
+      console.log('Story slug:', story.slug);
+      console.log('====================');
 
-      // Convert Storyblok content to HTML
       const htmlContent = convertStoryblokToHTML(story.content);
       setStoryContent(htmlContent);
       setStoryId(story.id.toString());
@@ -47,15 +51,22 @@ function PreviewContent() {
   };
 
   const convertStoryblokToHTML = (content: any): string => {
-    console.log('Converting content:', content); // Debug log
+    console.log('=== CONTENT CONVERSION DEBUG ===');
+    console.log('Component type:', content.component);
+    console.log('All fields:', Object.keys(content));
+    console.log('Full content:', JSON.stringify(content, null, 2));
+    console.log('================================');
     
     let html = '<div style="font-family: system-ui, -apple-system, sans-serif; line-height: 1.6;">';
 
-    // Handle blog_post component
-    if (content.component === "blog_post") {
+    const componentType = (content.component || "").toLowerCase();
+    
+    if (componentType === "blog_post" || content.component === "blog_post") {
       html += renderBlogPost(content);
     } 
-    // Handle page with body
+    else if (componentType === "landing_page" || componentType === "plant landing" || content.component === "landing_page") {
+      html += renderLandingPage(content);
+    }
     else if (content.component === "page" && content.body) {
       html += '<main style="max-width: 1200px; margin: 0 auto; padding: 20px;">';
       content.body.forEach((blok: any) => {
@@ -63,19 +74,130 @@ function PreviewContent() {
       });
       html += '</main>';
     }
-    // Handle direct body array
     else if (Array.isArray(content.body)) {
       content.body.forEach((blok: any) => {
         html += renderBlok(blok);
       });
     }
-    // Fallback
     else {
-      html += `<div style="padding: 20px;">Content type: ${content.component || 'unknown'}</div>`;
+      html += `
+        <div style="padding: 40px; background: #fef2f2; border: 2px solid #dc2626; border-radius: 12px; margin: 20px;">
+          <h2 style="color: #dc2626; margin: 0 0 16px 0;">Debug: Unhandled Content Type</h2>
+          <p style="margin: 8px 0;"><strong>Component:</strong> ${content.component || 'undefined'}</p>
+          <p style="margin: 8px 0;"><strong>Available Fields:</strong> ${Object.keys(content).join(', ')}</p>
+          <details style="margin-top: 16px;">
+            <summary style="cursor: pointer; font-weight: bold; color: #991b1b;">View Raw JSON</summary>
+            <pre style="background: white; padding: 12px; border-radius: 6px; overflow: auto; font-size: 11px; margin-top: 8px;">${JSON.stringify(content, null, 2)}</pre>
+          </details>
+        </div>
+      `;
     }
 
     html += '</div>';
     return html;
+  };
+
+  const renderLandingPage = (blok: any): string => {
+    console.log('=== RENDERING LANDING PAGE ===');
+    console.log('Hero title:', blok.hero_title);
+    console.log('Hero subtitle:', blok.hero_subtitle);
+    console.log('Features:', blok.features);
+    console.log('Gallery:', blok.gallery);
+    console.log('==============================');
+
+    return `
+      <div style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0;">
+        <!-- Hero Section - Intentional accessibility issues for testing -->
+        <section style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 100px 20px; text-align: center; color: white; position: relative;">
+          ${blok.hero_image?.filename ? `
+            <img 
+              src="${blok.hero_image.filename}" 
+              style="max-width: 500px; width: 100%; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);"
+            />
+          ` : ''}
+          
+          <h1 style="font-size: 3.5rem; font-weight: 800; margin: 0 0 20px 0; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); line-height: 1.2;">
+            ${blok.hero_title || 'Transform Your Space'}
+          </h1>
+          
+          <p style="font-size: 1.5rem; opacity: 0.95; max-width: 600px; margin: 0 auto 40px; line-height: 1.5;">
+            ${blok.hero_subtitle || 'Premium indoor plants delivered to your door'}
+          </p>
+          
+          <!-- Button without proper contrast ratio - accessibility issue -->
+          <button style="background: white; color: #667eea; padding: 18px 48px; font-size: 1.2rem; font-weight: bold; border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 10px 30px rgba(0,0,0,0.2); transition: all 0.3s ease; font-family: inherit;">
+            ${blok.cta_button_text || 'Get Started'}
+          </button>
+        </section>
+
+        <!-- Features Section -->
+        <section style="padding: 100px 20px; background: white;">
+          <div style="max-width: 1200px; margin: 0 auto;">
+            ${blok.features && blok.features.length > 0 ? `
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
+                ${blok.features.map((feature: any) => `
+                  <div style="text-align: center; padding: 40px 30px; border-radius: 20px; background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); box-shadow: 0 10px 40px rgba(0,0,0,0.08); transition: transform 0.3s ease; border: 1px solid #e2e8f0;">
+                    ${feature.icon_image?.filename ? `
+                      <img 
+                        src="${feature.icon_image.filename}" 
+                        style="width: 80px; height: 80px; margin-bottom: 24px; border-radius: 50%; object-fit: cover;"
+                      />
+                    ` : `
+                      <div style="width: 80px; height: 80px; margin: 0 auto 24px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">
+                        🌿
+                      </div>
+                    `}
+                    
+                    <h3 style="font-size: 1.5rem; color: #1e293b; margin: 0 0 12px 0; font-weight: 700;">
+                      ${feature.title || 'Feature'}
+                    </h3>
+                    
+                    <!-- Low contrast text - accessibility issue -->
+                    <p style="color: #94a3b8; line-height: 1.7; font-size: 1rem; margin: 0;">
+                      ${feature.description || 'Feature description goes here'}
+                    </p>
+                  </div>
+                `).join('')}
+              </div>
+            ` : '<p style="text-align: center; color: #64748b;">No features available</p>'}
+          </div>
+        </section>
+
+        <!-- Gallery Section -->
+        ${blok.gallery && blok.gallery.length > 0 ? `
+          <section style="padding: 100px 20px; background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);">
+            <h2 style="text-align: center; font-size: 2.75rem; margin: 0 0 60px 0; color: #0f172a; font-weight: 800;">
+              Our Plant Collection
+            </h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; max-width: 1200px; margin: 0 auto;">
+              ${blok.gallery.map((img: any, index: number) => `
+                <!-- Image ${index + 1} missing alt text - accessibility issue -->
+                <div style="position: relative; overflow: hidden; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); transition: transform 0.3s ease;">
+                  <img 
+                    src="${img.filename}" 
+                    style="width: 100%; height: 320px; object-fit: cover; display: block;"
+                  />
+                </div>
+              `).join('')}
+            </div>
+          </section>
+        ` : ''}
+
+        <!-- CTA Section with contrast issues -->
+        <section style="padding: 80px 20px; background: #fbbf24; text-align: center;">
+          <h2 style="font-size: 2.5rem; color: #fef3c7; margin: 0 0 20px 0; font-weight: 800;">
+            Ready to Go Green?
+          </h2>
+          <p style="font-size: 1.25rem; color: #fef3c7; margin: 0 0 30px 0;">
+            Join thousands of happy plant parents
+          </p>
+          <button style="background: #f59e0b; color: #fef3c7; padding: 16px 40px; font-size: 1.1rem; font-weight: bold; border: none; border-radius: 50px; cursor: pointer;">
+            Shop Now
+          </button>
+        </section>
+      </div>
+    `;
   };
 
   const renderBlogPost = (blok: any): string => {
@@ -92,10 +214,8 @@ function PreviewContent() {
       <article style="max-width: 800px; margin: 0 auto; padding: 40px 20px;">
         ${blok.title ? `<h1 style="font-size: 2.5rem; font-weight: bold; margin-bottom: 16px; color: #111;">${blok.title}</h1>` : ''}
         
-        <!-- Low contrast text - accessibility issue -->
         ${blok.author ? `<p style="color: #aaa; font-size: 0.9rem; margin-bottom: 24px;">By ${blok.author}</p>` : ''}
         
-        <!-- Image missing alt text - accessibility issue -->
         ${blok.featured_image?.filename ? `
           <img 
             src="${blok.featured_image.filename}"
@@ -107,17 +227,14 @@ function PreviewContent() {
           ${contentHTML}
         </div>
         
-        <!-- Link without descriptive text - accessibility issue -->
         <a href="#" style="color: blue; margin-top: 20px; display: inline-block;">
           Click here
         </a>
         
-        <!-- Button without aria-label - accessibility issue -->
         <button style="margin-top: 20px; padding: 12px 24px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer;">
           Subscribe
         </button>
         
-        <!-- Low contrast box - accessibility issue -->
         <div style="background: red; color: darkred; padding: 10px; margin-top: 20px;">
           Low contrast text
         </div>
@@ -174,7 +291,6 @@ function PreviewContent() {
       if (item.type === 'text') {
         let text = item.text || '';
         
-        // Apply marks (bold, italic, etc.)
         if (item.marks) {
           item.marks.forEach((mark: any) => {
             switch (mark.type) {
@@ -210,9 +326,17 @@ function PreviewContent() {
   };
 
   const renderBlok = (blok: any): string => {
+    const componentType = (blok.component || "").toLowerCase();
+    
+    if (componentType === "blog_post" || blok.component === "blog_post") {
+      return renderBlogPost(blok);
+    }
+    
+    if (componentType === "landing_page" || componentType === "plant landing") {
+      return renderLandingPage(blok);
+    }
+    
     switch (blok.component) {
-      case "blog_post":
-        return renderBlogPost(blok);
         
       case "feature":
         return `
@@ -237,9 +361,15 @@ function PreviewContent() {
         `;
         
       default:
-        return `<div style="padding: 12px; background: #f3f4f6; border-radius: 8px; margin: 8px 0;">
-          <strong>Component:</strong> ${blok.component}
-        </div>`;
+        return `
+          <div style="padding: 16px; background: #fef3c7; border-left: 4px solid #f59e0b; border-radius: 4px; margin: 12px 0;">
+            <strong>Unknown Component:</strong> ${blok.component}
+            <details style="margin-top: 8px;">
+              <summary style="cursor: pointer; color: #92400e;">Show fields</summary>
+              <pre style="font-size: 11px; margin-top: 8px; color: #78350f;">${JSON.stringify(blok, null, 2)}</pre>
+            </details>
+          </div>
+        `;
     }
   };
 

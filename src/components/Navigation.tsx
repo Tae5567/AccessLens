@@ -21,21 +21,18 @@ export default function Navigation() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center gap-4 lg:gap-6">
-            <Link href="/" className="text-gray-200 hover:text-white font-medium transition text-sm lg:text-base">
+            <Link href="/" className="text-black-200 hover:text-black font-medium transition text-sm lg:text-base">
               Home
             </Link>
-            <Link href="/preview?story=home" className="text-gray-200 hover:text-white font-medium transition text-sm lg:text-base">
+            <Link href="/preview?story=blog-post-sample" className="text-black-200 hover:text-black font-medium transition text-sm lg:text-base">
               Try Demo
             </Link>
-            <Link href="/about" className="text-gray-200 hover:text-white font-medium transition text-sm lg:text-base">
-              About
-            </Link>
-            <Link href="/docs" className="text-gray-200 hover:text-white font-medium transition text-sm lg:text-base">
+            <Link href="/docs" className="text-black-200 hover:text-black font-medium transition text-sm lg:text-base">
               Docs
             </Link>
             <Link
-              href="/preview?story=home"
-              className="px-4 lg:px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold hover:from-purple-600 hover:to-pink-600 transition shadow-lg text-sm lg:text-base"
+              href="/preview?story=landing-page"
+              className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-500 to-sky-500 text-white rounded-xl font-semibold text-base sm:text-lg hover:from-blue-600 hover:to-sky-600 transition shadow-lg"
             >
               Launch App →
             </Link>
@@ -53,21 +50,21 @@ export default function Navigation() {
         {/* Mobile Menu */}
         {mobileMenuOpen && (
           <div className="md:hidden mt-4 pb-4 flex flex-col gap-3 backdrop-blur-lg bg-white/10 p-4 rounded-xl">
-            <Link href="/" className="text-gray-200 hover:text-white font-medium py-2 transition" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/" className="text-black-200 hover:text-black font-medium py-2 transition" onClick={() => setMobileMenuOpen(false)}>
               Home
             </Link>
-            <Link href="/preview?story=home" className="text-gray-200 hover:text-white font-medium py-2 transition" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/preview?story=home" className="text-black-200 hover:text-black font-medium py-2 transition" onClick={() => setMobileMenuOpen(false)}>
               Try Demo
             </Link>
-            <Link href="/about" className="text-gray-200 hover:text-white font-medium py-2 transition" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/about" className="text-black-200 hover:text-black font-medium py-2 transition" onClick={() => setMobileMenuOpen(false)}>
               About
             </Link>
-            <Link href="/docs" className="text-gray-200 hover:text-white font-medium py-2 transition" onClick={() => setMobileMenuOpen(false)}>
+            <Link href="/docs" className="text-black-200 hover:text-black font-medium py-2 transition" onClick={() => setMobileMenuOpen(false)}>
               Docs
             </Link>
             <Link
               href="/preview?story=home"
-              className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg font-semibold text-center hover:from-purple-600 hover:to-pink-600 transition shadow-lg"
+              className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-black rounded-lg font-semibold text-center hover:from-purple-600 hover:to-pink-600 transition shadow-lg"
               onClick={() => setMobileMenuOpen(false)}
             >
               Launch App →

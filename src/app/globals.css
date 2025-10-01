@@ -25,7 +25,7 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Add to existing globals.css */
+
 @keyframes blob {
   0% {
     transform: translate(0px, 0px) scale(1);
