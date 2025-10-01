@@ -94,14 +94,16 @@ export const MotorSim: React.FC<MotorSimProps> = ({ simulationType, isActive, ch
         </div>
       )}
 
-      {/* Simulation info overlay */}
+      {/* Simulation info overlay - at bottom left */}
       {simulationType !== "none" && (
-        <div className="fixed bottom-4 right-4 bg-orange-600 text-white p-3 rounded-lg text-sm z-50 max-w-xs">
-          <div className="flex items-center gap-2 font-medium mb-1">
-            <span className="text-xl">🖱️</span>
-            Motor Impairment Simulation
+        <div 
+          className="fixed top-4 left-[410px] bg-orange-600 text-white p-2 rounded-lg text-xs max-w-[200px] shadow-xl"
+          style={{ zIndex: 10000 }}
+        >
+          <div className="flex items-center gap-2 font-medium">
+            <span className="text-base">🖱️</span>
+            <span>{getSimulationDescription()}</span>
           </div>
-          <div className="text-xs opacity-90">{getSimulationDescription()}</div>
         </div>
       )}
     </div>

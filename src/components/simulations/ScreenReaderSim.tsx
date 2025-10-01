@@ -1,4 +1,5 @@
 // src/components/simulations/ScreenReaderSim.tsx
+
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
@@ -7,9 +8,10 @@ import { SpeechUtility } from "@/lib/speech-utils";
 interface ScreenReaderSimProps {
   content: string;
   isActive: boolean;
+  onClose?: () => void; 
 }
 
-export const ScreenReaderSim: React.FC<ScreenReaderSimProps> = ({ content, isActive }) => {
+export const ScreenReaderSim: React.FC<ScreenReaderSimProps> = ({ content, isActive, onClose }) => {
   const [speechUtility] = useState(() => new SpeechUtility());
   const [currentElement, setCurrentElement] = useState<Element | null>(null);
   const [navigationIndex, setNavigationIndex] = useState(0);
@@ -19,7 +21,6 @@ export const ScreenReaderSim: React.FC<ScreenReaderSimProps> = ({ content, isAct
   useEffect(() => {
     if (!isActive) return;
 
-    // extract readable elements
     const parser = new DOMParser();
     const doc = parser.parseFromString(content, "text/html");
     const elements = Array.from(
@@ -118,11 +119,21 @@ export const ScreenReaderSim: React.FC<ScreenReaderSimProps> = ({ content, isAct
   if (!isActive) return null;
 
   return (
-    <div className="fixed top-4 left-4 bg-gray-900 text-white p-4 rounded-lg shadow-2xl z-50 min-w-[300px]">
-      <h3 className="text-lg font-bold mb-3 flex items-center gap-2">
-        <span className="text-2xl">🔊</span>
-        Screen Reader Mode
-      </h3>
+    <div className="bg-gray-900 text-white p-4 rounded-lg shadow-2xl min-w-[300px]">
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-lg font-bold flex items-center gap-2">
+          <span className="text-2xl">🔊</span>
+          Screen Reader Mode
+        </h3>
+        <button
+          onClick={onClose}
+          className="text-gray-400 hover:text-white text-xl font-bold"
+          aria-label="Close screen reader"
+          type="button"
+        >
+          ×
+        </button>
+      </div>
       
       <div className="space-y-3">
         <div className="text-sm bg-gray-800 p-2 rounded">

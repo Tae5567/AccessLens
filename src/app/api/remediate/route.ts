@@ -5,7 +5,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
     try{
-        const { storyId, fix} = await request.json();
+        const { storyId, fix } = await request.json();
 
         if(!storyId || !fix) {
             return NextResponse.json(
@@ -15,54 +15,59 @@ export async function POST(request: NextRequest) {
         }
 
         const managementToken = process.env.STORYBLOK_MANAGEMENT_TOKEN;
-        const spaceId = process.env.STORYBLOK_SPACE_IS;
+        const spaceId = process.env.STORYBLOK_SPACE_ID; // Fixed typo
 
         if(!managementToken || !spaceId) {
              return NextResponse.json(
-                {error: "Storyblok credentials not configured"},
+                {error: "Storyblok credentials not configured. Add STORYBLOK_MANAGEMENT_TOKEN and STORYBLOK_SPACE_ID to .env.local"},
                 { status: 500}
             );
         }
 
-        //fetch current story
+        // Fetch current story
         const storyResponse = await fetch(
             `https://mapi.storyblok.com/v1/spaces/${spaceId}/stories/${storyId}`,
             {
                 headers: {
-                Authorization: managementToken,
+                    Authorization: managementToken,
                 },
             }
         );
 
         if (!storyResponse.ok) {
+            const errorText = await storyResponse.text();
+            console.error('Storyblok fetch error:', errorText);
             throw new Error("Failed to fetch story");
         }
 
         const storyData = await storyResponse.json();
         const currentStory = storyData.story;
 
-        //apply fic to the content
+        // Apply fix to the content
         const updatedContent = applyFixToContent(currentStory.content, fix);
-        //update story in Storyblok
+        
+        // Update story in Storyblok
         const updateResponse = await fetch(
             `https://mapi.storyblok.com/v1/spaces/${spaceId}/stories/${storyId}`,
             {
                 method: "PUT",
                 headers: {
-                Authorization: managementToken,
-                "Content-Type": "application/json",
+                    Authorization: managementToken,
+                    "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                story: {
-                    ...currentStory,
-                    content: updatedContent,
-                },
+                    story: {
+                        ...currentStory,
+                        content: updatedContent,
+                    },
                 }),
             }
         );
 
         if (!updateResponse.ok) {
-            throw new Error("failed to update story");
+            const errorText = await updateResponse.text();
+            console.error('Storyblok update error:', errorText);
+            throw new Error("Failed to update story");
         }
 
         const result = await updateResponse.json();
@@ -71,17 +76,17 @@ export async function POST(request: NextRequest) {
             success: true,
             story: result.story,
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error("Remediation error:", error);
         return NextResponse.json(
-            {error: "Failed to apply fix"},
+            {error: error.message || "Failed to apply fix"},
             {status: 500}
         );
     }
 }
 
 function applyFixToContent(content: any, fix: any): any {
-    //deep clone the content
+    // Deep clone the content
     const newContent = JSON.parse(JSON.stringify(content));
 
     switch (fix.type) {
@@ -91,7 +96,12 @@ function applyFixToContent(content: any, fix: any): any {
             return applyAriaLabelFix(newContent, fix);
         case "heading-structure":
             return applyHeadingFix(newContent, fix);
+        case "color-contrast":
+            return applyColorContrastFix(newContent, fix);
+        case "focus-management":
+            return applyFocusManagementFix(newContent, fix);
         default:
+            console.warn(`Unknown fix type: ${fix.type}`);
             return newContent;
     }
 }
@@ -147,6 +157,50 @@ function applyHeadingFix(content: any, fix: any): any {
             return {
                 ...component,
                 level: fix.suggestedLevel,
+            };
+        }
+
+        if (component.body && Array.isArray(component.body)) {
+            return {
+                ...component,
+                body: component.body.map(updateComponent),
+            };
+        }
+
+        return component;
+    }
+    return updateComponent(content);
+}
+
+function applyColorContrastFix(content: any, fix: any): any {
+    function updateComponent(component: any): any {
+        if (component._uid === fix.componentId) {
+            return {
+                ...component,
+                color: fix.suggestedColor,
+                backgroundColor: fix.suggestedBackgroundColor,
+            };
+        }
+
+        if (component.body && Array.isArray(component.body)) {
+            return {
+                ...component,
+                body: component.body.map(updateComponent),
+            };
+        }
+
+        return component;
+    }
+    return updateComponent(content);
+}
+
+function applyFocusManagementFix(content: any, fix: any): any {
+    function updateComponent(component: any): any {
+        if (component._uid === fix.componentId) {
+            return {
+                ...component,
+                tabindex: fix.suggestedTabIndex || "0",
+                focusable: true,
             };
         }
 

@@ -103,12 +103,15 @@ export const VisionSim: React.FC<VisionSimProps> = ({ simulationType, children }
       <div style={getFilterStyle()}>
         {children}
         
-        {/* Simulation Label */}
+        {/* Simulation Label - at bottom right */}
         {simulationType !== "none" && (
-          <div className="fixed bottom-4 left-4 bg-purple-600 text-white px-4 py-2 rounded-lg shadow-lg z-50">
+          <div 
+            className="fixed top-4 right-4 bg-purple-600 text-white px-3 py-2 rounded-lg shadow-xl"
+            style={{ zIndex: 10000 }}
+          >
             <div className="flex items-center gap-2">
-              <span className="text-xl">👁️</span>
-              <span className="text-sm font-medium">Vision Simulation: {getSimulationLabel()}</span>
+              <span className="text-lg">👁️</span>
+              <span className="text-xs font-medium">{getSimulationLabel()}</span>
             </div>
           </div>
         )}
